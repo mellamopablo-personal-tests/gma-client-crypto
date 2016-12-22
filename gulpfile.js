@@ -9,7 +9,7 @@ gulp.task("typescript", () => {
 	return gulp.src("./lib/**/*.ts")
 		.pipe(plumber())
 		.pipe(tsc({
-			allowJs: true
+			declaration: true
 		}))
 		.pipe(gulp.dest("./dist/"))
 });

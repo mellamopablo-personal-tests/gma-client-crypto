@@ -3182,9 +3182,9 @@ declare module "crypto" {
     export function createHash(algorithm: string): Hash;
     export function createHmac(algorithm: string, key: string | Buffer): Hmac;
 
-    type Utf8AsciiLatin1Encoding = "utf8" | "ascii" | "latin1";
+    type Utf8AsciiLatin1Encoding = "utf8" | "utf-8" | "ascii" | "latin1";
     type HexBase64Latin1Encoding = "latin1" | "hex" | "base64";
-    type Utf8AsciiBinaryEncoding = "utf8" | "ascii" | "binary";
+    type Utf8AsciiBinaryEncoding = "utf8" | "utf-8" | "ascii" | "binary";
     type HexBase64BinaryEncoding = "binary" | "base64" | "hex";
     type ECDHKeyFormat = "compressed" | "uncompressed" | "hybrid";
 
@@ -3240,8 +3240,8 @@ declare module "crypto" {
         verify(object: string, signature: Buffer): boolean;
         verify(object: string, signature: string, signature_format: HexBase64Latin1Encoding): boolean;
     }
-    export function createDiffieHellman(prime_length: number, generator?: number): DiffieHellman;
-    export function createDiffieHellman(prime: Buffer): DiffieHellman;
+	export function createDiffieHellman(prime: Buffer): DiffieHellman;
+	export function createDiffieHellman(prime_length: number, generator?: number): DiffieHellman;
     export function createDiffieHellman(prime: string, prime_encoding: HexBase64Latin1Encoding): DiffieHellman;
     export function createDiffieHellman(prime: string, prime_encoding: HexBase64Latin1Encoding, generator: number | Buffer): DiffieHellman;
     export function createDiffieHellman(prime: string, prime_encoding: HexBase64Latin1Encoding, generator: string, generator_encoding: HexBase64Latin1Encoding): DiffieHellman;

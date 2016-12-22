@@ -1,15 +1,22 @@
 "use strict";
+/**
+ * @module gma-client-crypto
+ */
 /// <reference path="../typings/index.d.ts" />
 var request = require("request-promise");
 var crypto_1 = require("crypto");
 var GMA_ENCODING = "base64";
 var GMA_ENCRYPTION_ALGO = "aes256";
+/**
+ * @class GmaCrypto
+ */
 var GmaCrypto = (function () {
     function GmaCrypto(baseUrl) {
         if (!baseUrl) {
             throw new Error("You need to pass the URL to the GmaCrypto constructor.");
         }
         this.baseUrl = baseUrl;
+        this.prime = null;
     }
     /**
      * Generates a key pair, the private key being the concatenation of the username
@@ -21,16 +28,25 @@ var GmaCrypto = (function () {
      */
     GmaCrypto.prototype.generateKeyPair = function (username, password) {
         var _this = this;
+        var genKeyPair = function (prime) {
+            var dh = crypto_1.createDiffieHellman(prime);
+            dh.setPrivateKey(new Buffer(username + password));
+            dh.generateKeys();
+            return {
+                publicKey: dh.getPublicKey(),
+                privateKey: dh.getPrivateKey()
+            };
+        };
         return new Promise(function (fulfill, reject) {
-            _this._getPrime().then(function (prime) {
-                var dh = crypto_1.createDiffieHellman(prime);
-                dh.setPrivateKey(new Buffer(username + password));
-                dh.generateKeys();
-                fulfill({
-                    publicKey: dh.getPublicKey(),
-                    privateKey: dh.getPrivateKey()
-                });
-            })["catch"](reject);
+            if (_this.prime) {
+                fulfill(genKeyPair(_this.prime));
+            }
+            else {
+                _this._getPrime().then(function (prime) {
+                    _this.prime = prime;
+                    fulfill(genKeyPair(_this.prime));
+                })["catch"](reject);
+            }
         });
     };
     /**
@@ -45,7 +61,9 @@ var GmaCrypto = (function () {
     GmaCrypto.prototype.computeSharedSecret = function (privateKey, userId) {
         var _this = this;
         return new Promise(function (fulfill, reject) {
-            var getPrimePromise = _this._getPrime();
+            var getPrimePromise = _this.prime ? new Promise(function (fulfill, reject) {
+                fulfill(_this.prime);
+            }) : _this._getPrime();
             var getPublicKeyPromise = _this._getPublicKey(userId);
             Promise.all([getPrimePromise, getPublicKeyPromise]).then(function (values) {
                 var prime = values[0];

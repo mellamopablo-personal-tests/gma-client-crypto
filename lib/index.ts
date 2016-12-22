@@ -1,3 +1,6 @@
+/**
+ * @module gma-client-crypto
+ */
 /// <reference path="../typings/index.d.ts" />
 import * as request from "request-promise";
 import { createDiffieHellman, createCipher, createDecipher } from "crypto";
@@ -10,20 +13,25 @@ const GMA_ENCRYPTION_ALGO = "aes256";
  * @param {Buffer} publicKey
  * @param {Buffer} privateKey
  */
-interface KeyPair {
-	publicKey: string
-	privateKey: string
+export interface KeyPair {
+	publicKey: Buffer
+	privateKey: Buffer
 }
 
+/**
+ * @class GmaCrypto
+ */
 export class GmaCrypto {
 
 	baseUrl: string;
+	prime: Buffer;
 
 	constructor(baseUrl: string) {
 		if (!baseUrl) {
 			throw new Error("You need to pass the URL to the GmaCrypto constructor.");
 		}
 		this.baseUrl = baseUrl;
+		this.prime = null;
 	}
 
 	/**
@@ -35,17 +43,26 @@ export class GmaCrypto {
 	 * @returns {Promise<KeyPair>}
 	 */
 	generateKeyPair(username: string, password: string): Promise<KeyPair> {
-		return new Promise((fulfill, reject) => {
-			this._getPrime().then(prime => {
-				const dh = createDiffieHellman(prime);
-				dh.setPrivateKey(new Buffer(username + password));
-				dh.generateKeys();
+		let genKeyPair = function(prime: Buffer): KeyPair {
+			const dh = createDiffieHellman(prime);
+			dh.setPrivateKey(new Buffer(username + password));
+			dh.generateKeys();
 
-				fulfill({
-					publicKey: dh.getPublicKey(),
-					privateKey: dh.getPrivateKey()
-				});
-			}).catch(reject);
+			return {
+				publicKey: dh.getPublicKey(),
+				privateKey: dh.getPrivateKey()
+			};
+		};
+
+		return new Promise((fulfill, reject) => {
+			if (this.prime) {
+				fulfill(genKeyPair(this.prime));
+			} else {
+				this._getPrime().then(prime => {
+					this.prime = prime;
+					fulfill(genKeyPair(this.prime));
+				}).catch(reject);
+			}
 		});
 	}
 
@@ -60,7 +77,9 @@ export class GmaCrypto {
 	 */
 	computeSharedSecret(privateKey: Buffer, userId: number): Promise<Buffer> {
 		return new Promise((fulfill, reject) => {
-			let getPrimePromise = this._getPrime();
+			let getPrimePromise: Promise<Buffer> = this.prime ? new Promise((fulfill, reject) => {
+					fulfill(this.prime);
+				}) : this._getPrime();
 			let getPublicKeyPromise = this._getPublicKey(userId);
 
 			Promise.all([getPrimePromise, getPublicKeyPromise]).then(values => {

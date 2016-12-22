@@ -6,7 +6,7 @@
   "scripts": {
     "build": "gulp"
   },
-  "author": "",
+  "author": "Pablo Rodríguez <pabloviolin8@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {
     "gulp": "^3.9.1",
@@ -17,5 +17,13 @@
   "dependencies": {
     "request": "^2.79.0",
     "request-promise": "^4.1.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mellamopablo-personal-tests/gma-client-crypto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mellamopablo-personal-tests/gma-client-crypto/issues"
+  },
+  "homepage": "https://github.com/mellamopablo-personal-tests/gma-client-crypto#readme"
 }
